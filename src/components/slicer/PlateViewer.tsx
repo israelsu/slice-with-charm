@@ -2,14 +2,16 @@ import { Grid3x3, Maximize2, Orbit, Ruler, Target, ZoomIn, ZoomOut, Upload, File
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useRef, useState, type DragEvent } from "react";
+import StlMesh from "./StlMesh";
 
 interface PlateViewerProps {
   mode: "prepare" | "preview" | "device";
   fileName?: string | null;
+  file?: File | null;
   onFileSelected?: (file: File | null) => void;
 }
 
-const PlateViewer = ({ mode, fileName, onFileSelected }: PlateViewerProps) => {
+const PlateViewer = ({ mode, fileName, file, onFileSelected }: PlateViewerProps) => {
   const inputRef = useRef<HTMLInputElement>(null);
   const [dragOver, setDragOver] = useState(false);
 
@@ -46,7 +48,16 @@ const PlateViewer = ({ mode, fileName, onFileSelected }: PlateViewerProps) => {
           e.target.value = "";
         }}
       />
-      {/* Grid floor */}
+      {/* Real STL viewer */}
+      {file && (
+        <div className="absolute inset-0">
+          <StlMesh file={file} mode={mode} />
+        </div>
+      )}
+
+      {/* Grid floor (decorative — only when no file) */}
+      {!file && (
+      <>
       <div
         className="absolute inset-0 opacity-40"
         style={{
@@ -109,6 +120,8 @@ const PlateViewer = ({ mode, fileName, onFileSelected }: PlateViewerProps) => {
           </div>
         </div>
       </div>
+      </>
+      )}
 
       {/* Axis gizmo */}
       <div className="absolute bottom-4 left-4 flex h-20 w-20 items-center justify-center rounded-md border border-border bg-panel/80 backdrop-blur">
