@@ -23,9 +23,10 @@ const tools = [
 interface ToolRailProps {
   activeTab: Tab;
   onTabChange: (tab: Tab) => void;
+  previewEnabled?: boolean;
 }
 
-const ToolRail = ({ activeTab, onTabChange }: ToolRailProps) => {
+const ToolRail = ({ activeTab, onTabChange, previewEnabled = true }: ToolRailProps) => {
   const [activeTool, setActiveTool] = useState<string>("Move");
 
   return (
@@ -33,13 +34,17 @@ const ToolRail = ({ activeTab, onTabChange }: ToolRailProps) => {
       {mainTabs.map((tab) => {
         const Icon = tab.icon;
         const active = activeTab === tab.id;
+        const disabled = tab.id === "preview" && !previewEnabled;
         return (
           <button
             key={tab.id}
-            onClick={() => onTabChange(tab.id)}
+            onClick={() => !disabled && onTabChange(tab.id)}
+            disabled={disabled}
+            title={disabled ? "Import an STL file to enable Preview" : tab.label}
             className={cn(
               "group flex w-full flex-col items-center gap-1 px-1 py-2.5 text-[10px] font-medium uppercase tracking-wider transition-[var(--transition-smooth)]",
-              active ? "text-primary" : "text-muted-foreground hover:text-foreground"
+              active ? "text-primary" : "text-muted-foreground hover:text-foreground",
+              disabled && "cursor-not-allowed opacity-40 hover:text-muted-foreground"
             )}
           >
             <span

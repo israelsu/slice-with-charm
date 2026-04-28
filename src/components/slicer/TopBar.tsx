@@ -1,7 +1,14 @@
-import { ChevronDown, Cpu, FileUp, Layers, Play, Save, Settings2, Undo2, Redo2 } from "lucide-react";
+import { ChevronDown, Cpu, FileUp, Layers, Play, Save, Settings2, Undo2, Redo2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useRef } from "react";
 
-const TopBar = () => {
+interface TopBarProps {
+  fileName: string | null;
+  onFileSelected: (file: File | null) => void;
+}
+
+const TopBar = ({ fileName, onFileSelected }: TopBarProps) => {
+  const inputRef = useRef<HTMLInputElement>(null);
   return (
     <header className="flex h-14 items-center justify-between border-b border-border bg-panel px-4 shadow-panel">
       <div className="flex items-center gap-3">
@@ -25,6 +32,25 @@ const TopBar = () => {
             </button>
           ))}
         </nav>
+
+        {fileName && (
+          <>
+            <div className="mx-2 h-6 w-px bg-border" />
+            <div className="flex items-center gap-2 rounded-md border border-border bg-surface-raised px-2.5 py-1 text-xs">
+              <FileUp className="h-3.5 w-3.5 text-primary" />
+              <span className="max-w-[220px] truncate text-foreground" title={fileName}>
+                {fileName}
+              </span>
+              <button
+                onClick={() => onFileSelected(null)}
+                className="text-muted-foreground hover:text-foreground"
+                aria-label="Remove file"
+              >
+                <X className="h-3.5 w-3.5" />
+              </button>
+            </div>
+          </>
+        )}
       </div>
 
       <div className="flex items-center gap-2">
@@ -35,7 +61,18 @@ const TopBar = () => {
           <Redo2 className="h-4 w-4" />
         </Button>
         <div className="mx-2 h-6 w-px bg-border" />
-        <Button variant="ghost" size="sm" className="gap-2">
+        <input
+          ref={inputRef}
+          type="file"
+          accept=".stl,model/stl,application/vnd.ms-pki.stl"
+          className="hidden"
+          onChange={(e) => {
+            const file = e.target.files?.[0] ?? null;
+            onFileSelected(file);
+            e.target.value = "";
+          }}
+        />
+        <Button variant="ghost" size="sm" className="gap-2" onClick={() => inputRef.current?.click()}>
           <FileUp className="h-4 w-4" /> Import STL
         </Button>
         <Button variant="ghost" size="sm" className="gap-2">
