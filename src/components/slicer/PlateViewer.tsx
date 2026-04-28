@@ -1,14 +1,51 @@
-import { Grid3x3, Maximize2, Orbit, Ruler, Target, ZoomIn, ZoomOut } from "lucide-react";
+import { Grid3x3, Maximize2, Orbit, Ruler, Target, ZoomIn, ZoomOut, Upload, FileUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { useRef, useState, type DragEvent } from "react";
 
 interface PlateViewerProps {
   mode: "prepare" | "preview" | "device";
+  fileName?: string | null;
+  onFileSelected?: (file: File | null) => void;
 }
 
-const PlateViewer = ({ mode }: PlateViewerProps) => {
+const PlateViewer = ({ mode, fileName, onFileSelected }: PlateViewerProps) => {
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [dragOver, setDragOver] = useState(false);
+
+  const pickFile = (files: FileList | null) => {
+    const file = files?.[0];
+    if (!file) return;
+    if (!/\.stl$/i.test(file.name)) return;
+    onFileSelected?.(file);
+  };
+
+  const handleDrop = (e: DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setDragOver(false);
+    pickFile(e.dataTransfer.files);
+  };
+
   return (
-    <div className="relative flex-1 overflow-hidden bg-gradient-plate">
+    <div
+      className="relative flex-1 overflow-hidden bg-gradient-plate"
+      onDragOver={(e) => {
+        e.preventDefault();
+        setDragOver(true);
+      }}
+      onDragLeave={() => setDragOver(false)}
+      onDrop={handleDrop}
+    >
+      <input
+        ref={inputRef}
+        type="file"
+        accept=".stl,model/stl,application/vnd.ms-pki.stl"
+        className="hidden"
+        onChange={(e) => {
+          pickFile(e.target.files);
+          e.target.value = "";
+        }}
+      />
       {/* Grid floor */}
       <div
         className="absolute inset-0 opacity-40"
@@ -91,6 +128,39 @@ const PlateViewer = ({ mode }: PlateViewerProps) => {
           </Button>
         ))}
       </div>
+
+      {/* Empty-state upload overlay */}
+      {!fileName && (
+        <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+          <button
+            onClick={() => inputRef.current?.click()}
+            className={cn(
+              "pointer-events-auto flex flex-col items-center justify-center gap-3 rounded-lg border-2 border-dashed bg-panel/70 px-10 py-8 text-center backdrop-blur transition-[var(--transition-smooth)]",
+              dragOver
+                ? "border-primary bg-primary/10 shadow-glow"
+                : "border-border hover:border-primary/60 hover:bg-panel/90"
+            )}
+          >
+            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-primary shadow-glow">
+              <Upload className="h-5 w-5 text-primary-foreground" />
+            </div>
+            <div className="flex flex-col gap-1">
+              <span className="text-sm font-semibold text-foreground">Drop an STL here</span>
+              <span className="text-xs text-muted-foreground">or click to browse · .stl files only</span>
+            </div>
+          </button>
+        </div>
+      )}
+
+      {/* Loaded-file chip */}
+      {fileName && (
+        <div className="absolute left-4 top-4 flex items-center gap-2 rounded-md border border-border bg-panel/80 px-3 py-1.5 text-xs backdrop-blur">
+          <FileUp className="h-3.5 w-3.5 text-primary" />
+          <span className="max-w-[280px] truncate text-foreground" title={fileName}>
+            {fileName}
+          </span>
+        </div>
+      )}
 
       {/* Bottom info strip */}
       <div className="absolute bottom-4 right-4 flex items-center gap-3 rounded-md border border-border bg-panel/80 px-3 py-2 text-xs text-muted-foreground backdrop-blur">
