@@ -20,7 +20,7 @@ const Index = () => {
       <div className="flex flex-1 overflow-hidden">
         <ToolRail activeTab={tab} onTabChange={setTab} previewEnabled={!!stlFile} />
         <main className="flex flex-1 flex-col overflow-hidden">
-          <PlateViewer mode={tab} fileName={stlFile?.name ?? null} onFileSelected={handleFile} />
+          <PlateViewer mode={tab} fileName={stlFile?.name ?? null} file={stlFile} onFileSelected={handleFile} />
         </main>
         <SettingsPanel />
       </div>
